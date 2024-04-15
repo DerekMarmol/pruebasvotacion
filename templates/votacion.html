@@ -192,145 +192,55 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
     <script>
         const socket = io();
-    
-        document.addEventListener('DOMContentLoaded', (event) => {
+
+        document.addEventListener('DOMContentLoaded', () => {
             // Habilitar o deshabilitar botones de votar
             function toggleVotingButtons(enable) {
                 document.querySelectorAll('.votar').forEach(button => button.disabled = !enable);
             }
-    
-            // Seleccionar todos los botones de votar
-            const votarButtons = document.querySelectorAll('.votar');
-    
-            // Función para manejar el clic en el botón de votar
-            function handleVoting(event) {
-                const grupoId = parseInt(event.target.getAttribute('data-grupo')); // Convertir a entero
-                fetch('/votar', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 'grupo': grupoId })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data.resultado);
-                    // Aquí puedes actualizar la interfaz de usuario con el resultado
-                })
-                .catch(error => console.error('Error:', error));
-            }
-    
-            // Añadir el evento de clic a cada botón de votar
-            votarButtons.forEach(button => {
-                button.addEventListener('click', handleVoting);
-            });
-    
+
             // Actualizar y mostrar el recuento de votos
             function actualizarRecuentoVotos(recuentoVotos) {
                 let recuentoVotosContainer = document.getElementById('recuentoVotosContainer');
                 if (!recuentoVotosContainer) {
-                    // Si el contenedor no existe, lo creamos y lo agregamos al DOM
                     recuentoVotosContainer = document.createElement('div');
                     recuentoVotosContainer.id = 'recuentoVotosContainer';
                     document.body.appendChild(recuentoVotosContainer);
                 } else {
-                    // Si el contenedor existe, lo vaciamos para actualizar los votos
                     recuentoVotosContainer.innerHTML = '';
                 }
-    
+
                 for (const [grupo, votos] of Object.entries(recuentoVotos)) {
                     const grupoVoto = document.createElement('div');
                     grupoVoto.classList.add('grupoVoto');
                     grupoVoto.innerHTML = `<p>Grupo ${grupo}: ${votos} votos</p>`;
                     recuentoVotosContainer.appendChild(grupoVoto);
                 }
-    
-                // Mostramos el contenedor del recuento de votos
+
                 const recuentoVotosDiv = document.getElementById('recuentoVotos');
                 if (recuentoVotosDiv) {
                     recuentoVotosDiv.style.display = 'block';
                 }
             }
-    
-            // Obtener referencias a los botones
-            const abrirVotacionBtn = document.getElementById('abrirVotacion');
-            const cerrarVotacionBtn = document.getElementById('cerrarVotacion');
-            const reiniciarVotacionesBtn = document.getElementById('reiniciarVotaciones');
-    
-            // Función para mostrar/ocultar botones
-            function toggleBotones(abrirVotacionVisible, cerrarVotacionVisible, reiniciarVotacionesVisible) {
-                abrirVotacionBtn.style.display = abrirVotacionVisible ? 'inline-block' : 'none';
-                cerrarVotacionBtn.style.display = cerrarVotacionVisible ? 'inline-block' : 'none';
-                reiniciarVotacionesBtn.style.display = reiniciarVotacionesVisible ? 'inline-block' : 'none';
-            }
-    
-            // Inicialmente, mostrar solo el botón "Abrir Votación"
-            toggleBotones(true, false, false);
-    
+
             // Manejar eventos WebSocket
             socket.on('votacion_abierta', function(data) {
                 toggleVotingButtons(true);
                 actualizarRecuentoVotos(data.recuento_votos);
-                toggleBotones(false, true, false); // Mostrar "Cerrar Votación", ocultar los demás
             });
-    
+
             socket.on('votacion_cerrada', function(data) {
                 toggleVotingButtons(false);
                 document.getElementById('resultadoVotacion').innerText = data.resultado;
                 document.getElementById('resultadoVotacion').style.display = 'block';
                 actualizarRecuentoVotos(data.recuento_votos);
-                toggleBotones(false, false, true); // Mostrar "Reiniciar Votaciones", ocultar los demás
             });
-    
+
             socket.on('votaciones_reiniciadas', function() {
                 toggleVotingButtons(false);
                 document.getElementById('resultadoVotacion').style.display = 'none';
                 document.getElementById('recuentoVotos').style.display = 'none';
                 document.getElementById('recuentoVotos').innerHTML = '';
-                toggleBotones(true, false, false); // Mostrar "Abrir Votación", ocultar los demás
-            });
-    
-            // Manejar eventos de los botones del administrador
-            document.getElementById('abrirVotacion').addEventListener('click', event => {
-                fetch('/abrir_votacion', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                })
-                .catch(error => console.error('Error:', error));
-            });
-    
-            document.getElementById('cerrarVotacion').addEventListener('click', event => {
-                fetch('/cerrar_votacion', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                })
-                .catch(error => console.error('Error:', error));
-            });
-    
-            document.getElementById('reiniciarVotaciones').addEventListener('click', event => {
-                fetch('/reiniciar_votaciones', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                })
-                .catch(error => console.error('Error:', error));
             });
         });
     </script>               
