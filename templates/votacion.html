@@ -223,6 +223,33 @@
             grid-template-columns: repeat(1, 1fr);
         }
         }
+
+        /* Contenedor con scroll para los grupos */
+        #grupos-container {
+            margin-top: 2rem;
+            max-height: 70vh; /* Altura máxima con scroll */
+            overflow-y: auto; /* Añade scroll vertical si el contenido excede la altura */
+            display: flex; /* Cambiamos de grid a flex para que los grupos se distribuyan verticalmente */
+            flex-wrap: wrap; /* Para que los grupos puedan envolverse en una nueva línea si no hay suficiente espacio */
+            justify-content: center; /* Centrar los grupos horizontalmente */
+            padding-right: 1rem; /* Agrega espacio para evitar que el scroll se superponga al contenido */
+        }
+
+        /* Grupos */
+        .grupo {
+            background-color: var(--light-color);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+            position: relative;
+            overflow: hidden;
+            margin: 1rem; /* Añadimos margen entre los grupos */
+            flex: 1 0 300px; /* Establecemos un tamaño flexible para los grupos */
+            max-width: 300px; /* Limitamos el ancho máximo de los grupos para evitar que se estiren demasiado */
+        }
+
     </style>
 </head>
 <body>
@@ -350,12 +377,10 @@
                 <h2>No.30 Julio Alejandro Pineda Duque</h2>
                 <button class="votar" data-grupo="30" disabled>Votar</button>
             </div>
-            <div class="grupo31-container">
-                <div class="grupo grupo31">
+            <div class="grupo">
                     <h2>No.31 Patrick Alexander Salguero Solares</h2>
                     <button class="votar" data-grupo="31" disabled>Votar</button>
-                </div>
-            </div>          
+            </div>        
         </div>
     </div>
     <div id="resultadoVotacion" style="display: none;"></div>
