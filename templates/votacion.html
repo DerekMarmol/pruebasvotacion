@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -370,15 +371,17 @@
     <div id="resultadoVotacion" style="display: none;"></div>
     <span id="es-admin-valor" style="display: none;">true</span>
     <span id="correo-usuario" style="display: none;">dcamerosv@miumg.edu.gt</span>
-    
+    {% if session.get('es_admin', False) %}
         <button id="abrirVotacion">Abrir Votación</button>
         <button id="cerrarVotacion" style="display: none;">Cerrar Votación</button>
         <button id="reiniciarVotaciones" style="display: none;">Reiniciar Votaciones</button>
-        <div id="recuentoVotos" style="display: none;">
-            <h3>Recuento de Votos:</h3>
-            <div id="recuentoVotosContainer"></div>
+        <div id="recuentoVotos" style="display: none; max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+            <h3 style="margin-bottom: 10px;">Recuento de Votos:</h3>
+            <div id="recuentoVotosContainer">
+                <!-- Aquí se añadirán los cuadros de recuento de votos dinámicamente -->
+            </div>
         </div>
-    
+    {% endif %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {

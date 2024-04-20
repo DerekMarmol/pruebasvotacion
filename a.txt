@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -221,13 +223,23 @@
             from { transform: translateY(-20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+        /* Estilos para pantallas pequeñas */
+        @media only screen and (max-width: 600px) {
+            #grupos-container {
+                height: auto; /* Eliminar altura fija */
+                max-height: 400px; /* Establecer una altura máxima para evitar que se desborde la pantalla */
+            }
+
+            .grupo {
+                width: calc(100% - 20px); /* Ajustar el ancho para ocupar todo el ancho de la pantalla */
+                margin-bottom: 20px; /* Agregar espacio entre grupos */
+            }
+        }
     </style>
 </head>
 <body>
     <h1 id="titulo">Votaciones: Proceso Administrativo</h1>
-    <div class="bienvenida">
-        <p>Bienvenid@ a las votaciones {{ session.get('nombre', 'Invitado') }}!</p>
-    </div>
+    <div class="bienvenida"><p>Bienvenid@ a las votaciones Licenciada Dania!</p></div>
     <div id="grupos-container">
         <div id="grupos">
             <div class="grupo">
@@ -357,8 +369,8 @@
         </div>
     </div>
     <div id="resultadoVotacion" style="display: none;"></div>
-    <span id="es-admin-valor" style="display: none;">{{ session.get('es_admin', False) | tojson }}</span>
-    <span id="correo-usuario" style="display: none;">{{ session.get('correo', '') }}</span>
+    <span id="es-admin-valor" style="display: none;">true</span>
+    <span id="correo-usuario" style="display: none;">dcamerosv@miumg.edu.gt</span>
     {% if session.get('es_admin', False) %}
         <button id="abrirVotacion">Abrir Votación</button>
         <button id="cerrarVotacion" style="display: none;">Cerrar Votación</button>
@@ -369,6 +381,224 @@
                 <!-- Aquí se añadirán los cuadros de recuento de votos dinámicamente -->
             </div>
         </div>
-    {% endif %}                
+    {% endif %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const socket = io();
+
+            // Obtener el valor de es_admin desde el elemento HTML
+            const esAdminValorElemento = document.getElementById('es-admin-valor');
+            const esAdmin = esAdminValorElemento ? JSON.parse(esAdminValorElemento.textContent) : false;
+
+            let votacionAbierta = false;
+            let usuariosVotaron = new Set(); // Nuevo conjunto para rastrear usuarios que han votado
+            const correoUsuarioElemento = document.getElementById('correo-usuario');
+            const correoUsuario = correoUsuarioElemento ? correoUsuarioElemento.textContent : '';
+
+            function toggleVotingButtons(enable) {
+                const votarButtons = document.querySelectorAll('.votar');
+                if (votarButtons) {
+                    votarButtons.forEach(button => {
+                        button.disabled = !enable;
+                    });
+                }
+            }
+
+            // Manejar actualizaciones de recuento de votos en tiempo real
+            socket.on('recuento_votos', data => {
+                votacionAbierta = true;
+                actualizarRecuentoVotos(data.recuento_votos);
+                toggleVotingButtons(true); // Habilitar botones de votar para todos los usuarios
+            });
+
+            // Manejar mensajes de votación cerrada en tiempo real
+            socket.on('votacion_cerrada', data => {
+                votacionAbierta = false;
+                toggleVotingButtons(false); // Deshabilitar botones de votar para todos los usuarios
+                const resultadoVotacionDiv = document.getElementById('resultadoVotacion');
+                if (resultadoVotacionDiv) {
+                    resultadoVotacionDiv.innerText = data.resultado;
+                    resultadoVotacionDiv.style.display = 'block';
+                }
+                usuariosVotaron.clear(); // Limpiar el conjunto de usuarios que votaron
+                // Actualizar otros elementos de la interfaz de usuario según sea necesario
+            });
+
+            // Manejar evento de votaciones reiniciadas
+            socket.on('votaciones_reiniciadas', () => {
+                votacionAbierta = false;
+                toggleVotingButtons(false); // Deshabilitar botones de votar para todos los usuarios
+                const resultadoVotacionDiv = document.getElementById('resultadoVotacion');
+                if (resultadoVotacionDiv) {
+                    resultadoVotacionDiv.style.display = 'none';
+                }
+                const recuentoVotosDiv = document.getElementById('recuentoVotos');
+                if (recuentoVotosDiv) {
+                    recuentoVotosDiv.style.display = 'none';
+                    recuentoVotosDiv.innerHTML = ''; // Limpiar el recuento de votos
+                }
+                usuariosVotaron.clear(); // Limpiar el conjunto de usuarios que votaron
+            });
+
+            // Función para manejar el clic en el botón de votar
+            function handleVoting(event) {
+                const grupoId = parseInt(event.target.getAttribute('data-grupo')); // Convertir a entero
+
+                // Obtener el correo del usuario actual desde el elemento HTML
+                const correoUsuarioElemento = document.getElementById('correo-usuario');
+                const correoUsuario = correoUsuarioElemento ? correoUsuarioElemento.textContent : '';
+
+                // Verificar si el usuario ya ha votado
+                if (usuariosVotaron.has(correoUsuario)) {
+                    console.log('Ya has votado anteriormente');
+                    return;
+                }
+
+                // Registrar que el usuario ha votado
+                usuariosVotaron.add(correoUsuario);
+
+                fetch('/votar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 'grupo': grupoId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.resultado);
+                    // Aquí puedes actualizar la interfaz de usuario con el resultado
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+            // Añadir el evento de clic a cada botón de votar
+            const votarButtons = document.querySelectorAll('.votar');
+            if (votarButtons) {
+                votarButtons.forEach(button => {
+                    button.addEventListener('click', handleVoting);
+                });
+            }
+
+            // Actualizar y mostrar el recuento de votos
+            function actualizarRecuentoVotos(recuentoVotos) {
+                const recuentoVotosDiv = document.getElementById('recuentoVotos');
+                if (recuentoVotosDiv && recuentoVotos && typeof recuentoVotos === 'object') {
+                    let recuentoVotosHTML = '<h3>Recuento de Votos:</h3>';
+                    for (const [grupo, votos] of Object.entries(recuentoVotos)) {
+                        recuentoVotosHTML += `<p>Participantes ${grupo}: ${votos} votos</p>`;
+                    }
+                    recuentoVotosDiv.innerHTML = recuentoVotosHTML;
+                    recuentoVotosDiv.style.display = 'block'; // Mostrar el recuento de votos
+                } else {
+                    console.error('El recuento de votos no está definido correctamente:', recuentoVotos);
+                }
+            }
+
+            // Código para administradores
+            if (esAdmin) {
+                // Manejar la apertura de votación
+                const abrirVotacionBtn = document.getElementById('abrirVotacion');
+                if (abrirVotacionBtn) {
+                    abrirVotacionBtn.addEventListener('click', event => {
+                        fetch('/abrir_votacion', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                            toggleVotingButtons(true); // Habilitar los botones de votar
+                            abrirVotacionBtn.style.display = 'none';
+                            const cerrarVotacionBtn = document.getElementById('cerrarVotacion');
+                            if (cerrarVotacionBtn) {
+                                cerrarVotacionBtn.style.display = 'block';
+                            }
+                            const reiniciarVotacionesBtn = document.getElementById('reiniciarVotaciones');
+                            if (reiniciarVotacionesBtn) {
+                                reiniciarVotacionesBtn.style.display = 'none';
+                            }
+                            actualizarRecuentoVotos(data.recuento_votos); // Actualizar y mostrar recuento de votos
+                        })
+                        .catch(error => console.error('Error:', error));
+                    });
+                } else {
+                    console.log('El botón abrirVotacion no se encontró en el DOM');
+                }
+
+                // Manejar el cierre de votación
+                const cerrarVotacionBtn = document.getElementById('cerrarVotacion');
+                if (cerrarVotacionBtn) {
+                    cerrarVotacionBtn.addEventListener('click', event => {
+                        fetch('/cerrar_votacion', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                            toggleVotingButtons(false); // Deshabilitar los botones de votar
+                            const resultadoVotacionDiv = document.getElementById('resultadoVotacion');
+                            if (resultadoVotacionDiv) {
+                                resultadoVotacionDiv.innerText = data.resultado;
+                                resultadoVotacionDiv.style.display = 'block';
+                            }
+                            abrirVotacionBtn.style.display = 'none';
+                            cerrarVotacionBtn.style.display = 'none';
+                            const reiniciarVotacionesBtn = document.getElementById('reiniciarVotaciones');
+                            if (reiniciarVotacionesBtn) {
+                                reiniciarVotacionesBtn.style.display = 'block';
+                            }
+                            actualizarRecuentoVotos(data.recuento_votos); // Actualizar y mostrar recuento de votos al cerrar la votación
+                        })
+                        .catch(error => console.error('Error:', error));
+                    });
+                } else {
+                    console.log('El botón cerrarVotacion no se encontró en el DOM');
+                }
+
+                // Manejar el reinicio de votaciones
+                const reiniciarVotacionesBtn = document.getElementById('reiniciarVotaciones');
+                if (reiniciarVotacionesBtn) {
+                    reiniciarVotacionesBtn.addEventListener('click', event => {
+                        fetch('/reiniciar_votaciones', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                            if (abrirVotacionBtn) {
+                                abrirVotacionBtn.style.display = 'block';
+                            }
+                            if (cerrarVotacionBtn) {
+                                cerrarVotacionBtn.style.display = 'none';
+                            }
+                            reiniciarVotacionesBtn.style.display = 'none';
+                            const resultadoVotacionDiv = document.getElementById('resultadoVotacion');
+                            if (resultadoVotacionDiv) {
+                                resultadoVotacionDiv.style.display = 'none';
+                            }
+                            const recuentoVotosDiv = document.getElementById('recuentoVotos');
+                            if (recuentoVotosDiv) {
+                                recuentoVotosDiv.style.display = 'none'; // Ocultar el recuento de votos
+                                recuentoVotosDiv.innerHTML = ''; // Limpiar el recuento de votos
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                    });
+                } else {
+                    console.log('El botón reiniciarVotaciones no se encontró en el DOM');
+                }
+            } // Cierre del bloque if (esAdmin)
+        });
+    </script>                 
 </body>
 </html>
