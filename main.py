@@ -25,7 +25,6 @@ def index():
     usuarios_df['es_admin'] = usuarios_df['es_admin'].astype(bool)
     return render_template('index.html', es_admin=session.get('es_admin', False))
 
-
 usuarios_df = pd.read_excel('base.xlsx')
 
 @app.route('/login', methods=['POST'])
@@ -80,61 +79,68 @@ def votacion():
     return render_template('votacion.html')
 
 # Inicializar el contador de votos
-votos = {str(i): 0 for i in range(1, 31)}
+votos = {str(i): 0 for i in range(1, 32)}
 
 # Función para reiniciar los votos
 def reiniciar_votos():
     global votos
-    votos = {str(i): 0 for i in range(1, 31)}  # Inicializar votos para 30 grupos
+    votos = {str(i): 0 for i in range(1, 32)}  # Inicializar votos para 30 grupos
     usuarios_df['voto'] = np.nan  # Reiniciar la columna 'voto' en el DataFrame
 
 # Bandera para controlar si la votación está abierta o no
 votacion_abierta = False
+
+def enviar_recuento_votos():
+    recuento_votos = {grupo: votos[grupo] for grupo in votos}
+    socketio.emit('recuento_votos', {'recuento_votos': recuento_votos})
 
 @app.route('/abrir_votacion', methods=['POST'])
 def abrir_votacion():
     global votacion_abierta
     votacion_abierta = True
     reiniciar_votos()
-    recuento_votos = {grupo: votos[grupo] for grupo in votos}
-    socketio.emit('votacion_abierta', {'recuento_votos': recuento_votos})
-    return jsonify({'resultado': 'Votación abierta', 'recuento_votos': recuento_votos})
+    enviar_recuento_votos()  # Envía el recuento de votos cuando se abre la votación
+    return jsonify({'resultado': 'Votación abierta'})
 
 logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
 # Diccionario para rastrear qué usuarios han votado
-usuarios_votaron = set()
+usuarios_votaron = {}
 
 @app.route('/votar', methods=['POST'])
 def votar():
     # Obtener el grupo por el que se está votando desde la solicitud
     grupo_votado = int(request.get_json()['grupo'])
 
-    # Obtener el correo del usuario actual
+    # Obtener el correo electrónico y el token del usuario actual
     correo_usuario = session.get('correo', None)
+    token_usuario = session.get('token', None)
 
-    # Verificar si el usuario está autenticado y tiene un correo electrónico válido
-    if correo_usuario is None:
+    # Verificar si el usuario está autenticado y tiene un correo electrónico y token válidos
+    if correo_usuario is None or token_usuario is None:
         return jsonify({'resultado': 'Usuario no autenticado'})
 
+    # Crear una clave única para el usuario (correo + token)
+    clave_usuario = (correo_usuario, token_usuario)
+
     # Verificar si el usuario ya ha votado antes
-    if correo_usuario in usuarios_votaron:
+    if clave_usuario in usuarios_votaron:
         return jsonify({'resultado': 'Ya has votado anteriormente'})
 
     # Registrar que el usuario ha votado
-    usuarios_votaron.add(correo_usuario)
+    usuarios_votaron[clave_usuario] = grupo_votado
 
     # Actualizar la columna voto en el archivo Excel para el usuario actual y el grupo votado
-    usuarios_df.loc[usuarios_df['correo'] == correo_usuario, 'voto'] = grupo_votado
+    usuarios_df.loc[(usuarios_df['correo'] == correo_usuario) & (usuarios_df['token'] == token_usuario), 'voto'] = grupo_votado
     usuarios_df.to_excel('base.xlsx', index=False)
 
     # Incrementar el conteo de votos para el grupo votado
     votos[str(grupo_votado)] += 1  # Convertir grupo_votado a una cadena aquí
 
-    logging.info(f'Usuario {correo_usuario} votó por el grupo {grupo_votado}. Votos actuales: {votos}')
+    logging.info(f'Usuario con correo {correo_usuario} y token {token_usuario} votó por el grupo {grupo_votado}. Votos actuales: {votos}')
 
     # Emitir un mensaje WebSocket informando sobre el voto realizado
-    socketio.emit('voto_registrado', {'usuario': correo_usuario, 'grupo_votado': grupo_votado})
+    socketio.emit('voto_registrado', {'usuario': clave_usuario, 'grupo_votado': grupo_votado})
 
     return jsonify({'resultado': 'Voto registrado correctamente'})
 
@@ -147,23 +153,17 @@ def cerrar_votacion():
     # Si hay un solo grupo ganador, retornar ese grupo
     if len(grupos_ganadores) == 1:
         grupo_ganador = grupos_ganadores[0]
-        resultado = f'Grupo ganador: {grupo_ganador}'
+        resultado = f'Participante ganador: No.{grupo_ganador}'
     else:
-        resultado = f'Empate entre los grupos {", ".join(str(grupo) for grupo in grupos_ganadores)}'
+        resultado = f'Empate entre los participantes {", ".join(str(grupo) for grupo in grupos_ganadores)}'
     
-    recuento_votos = {grupo: votos[grupo] for grupo in votos}
-    socketio.emit('votacion_cerrada', {'resultado': resultado, 'recuento_votos': recuento_votos})
-    return jsonify({'resultado': resultado, 'recuento_votos': recuento_votos})
-    
-    # Enviar el recuento de votos al cliente
-    recuento_votos = {grupo: votos[grupo] for grupo in votos}
-    
-    return jsonify({'resultado': resultado, 'recuento_votos': recuento_votos})
+    socketio.emit('votacion_cerrada', {'resultado': resultado})
+    enviar_recuento_votos()  # Envía el recuento de votos cuando se cierra la votación
+    return jsonify({'resultado': resultado})
 
 @app.route('/reiniciar_votaciones', methods=['POST'])
 def reiniciar_votaciones():
-    global usuarios_votaron
-    usuarios_votaron = set()
+    usuarios_votaron.clear()  # Limpiar el diccionario de usuarios que votaron
     reiniciar_votos()
     socketio.emit('votaciones_reiniciadas', {})
     return jsonify({'resultado': 'Votaciones reiniciadas correctamente'})
@@ -173,4 +173,4 @@ def handle_connect():
     print('Cliente conectado')
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=True) 
