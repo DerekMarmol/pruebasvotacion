@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -239,7 +240,7 @@
 </head>
 <body>
     <h1 id="titulo">Votaciones: Proceso Administrativo</h1>
-    <div class="bienvenida"><p>Bienvenid@ a las votaciones Licenciada Dania!</p></div>
+    <div class="bienvenida"><p>Bienvenid@ a las votaciones {{ session.get('nombre', 'Invitado') }}!</p></div>
     <div id="grupos-container">
         <div id="grupos">
             <div class="grupo">
@@ -368,9 +369,9 @@
             </div>            
         </div>
     </div>
-    <div id="resultadoVotacion" style="display: none;"></div>
-    <span id="es-admin-valor" style="display: none;">true</span>
-    <span id="correo-usuario" style="display: none;">dcamerosv@miumg.edu.gt</span>
+   <div id="resultadoVotacion" style="display: none;"></div>
+    <span id="es-admin-valor" style="display: none;">{{ session.get('es_admin', False) | tojson }}</span>
+    <span id="correo-usuario" style="display: none;">{{ session.get('correo', '') }}</span>
     {% if session.get('es_admin', False) %}
         <button id="abrirVotacion">Abrir Votación</button>
         <button id="cerrarVotacion" style="display: none;">Cerrar Votación</button>
