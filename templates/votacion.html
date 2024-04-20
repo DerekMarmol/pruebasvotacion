@@ -250,6 +250,29 @@
             max-width: 300px; /* Limitamos el ancho máximo de los grupos para evitar que se estiren demasiado */
         }
 
+        /* Grupos */
+        .grupo {
+            display: flex; /* Usamos flexbox para alinear verticalmente */
+            flex-direction: column; /* Alineamos los elementos en columnas */
+            justify-content: center; /* Centramos verticalmente los elementos */
+            align-items: center; /* Centramos horizontalmente los elementos */
+            background-color: var(--light-color);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+            position: relative;
+            overflow: hidden;
+            margin: 1rem;
+            flex: 1 0 300px;
+            max-width: 300px;
+        }
+
+        /* Nombre del grupo */
+        .grupo h2 {
+            margin-bottom: 0.5rem; /* Reducimos el margen inferior del nombre */
+        }
     </style>
 </head>
 <body>
