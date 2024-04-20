@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,279 +6,239 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Votaciones: Proceso Administrativo</title>
     <style>
-        /* Paleta de colores */
-        :root {
-        --primary-color: #2c3e50;
-        --secondary-color: #e67e22;
-        --accent-color: #d35400;
-        --light-color: #ecf0f1;
-        --dark-color: #34495e;
-        }
-
-        /* Tipografía */
         body {
-        font-family: 'Montserrat', sans-serif;
-        color: var(--dark-color);
-        }
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8f8f8;
+        margin: 0;
+        padding: 0;
+        color: #333;
+    }
 
-        h1, h2, h3 {
-        font-family: 'Playfair Display', serif;
-        color: var(--primary-color);
-        }
-
-        /* Encabezado */
-        #titulo {
+    #titulo {
         text-align: center;
-        font-size: 3rem;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        margin-bottom: 1rem;
+        margin: 40px 0;
+        color: #2c3e50;
+        font-size: 3em;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
+    }
 
-        .bienvenida {
-        background-color: var(--secondary-color);
-        color: var(--light-color);
-        padding: 1rem;
-        border-radius: 5px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    .bienvenida {
         text-align: center;
-        font-size: 1.2rem;
-        }
-
-        /* Grupos */
-        #grupos-container {
-        margin-top: 2rem;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-        }
-
-        .grupo {
-        background-color: var(--light-color);
+        margin: 20px 0;
+        padding: 15px;
+        background-color: #2c3e50;
+        color: #fff;
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 1.5rem;
+        animation: fadeIn 2s ease;
+    }
+
+    #grupos-container {
+        height: 600px;
+        overflow-y: auto;
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        background-color: #fff;
+    }
+
+    .grupo {
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        width: calc(33.333% - 40px);
         text-align: center;
-        transition: all 0.3s ease-in-out;
+        background-color: #f8f8f8;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
         position: relative;
         overflow: hidden;
-        }
+        display: flex;
+        flex-direction: column;
+        height: 200px;
+    }
 
-        .grupo:hover {
+    .grupo:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
+    }
 
-        .grupo h2 {
-        font-size: 1.2rem;
-        margin-bottom: 1rem;
-        }
-
-        .votar {
-        background-color: var(--accent-color);
-        color: var(--light-color);
-        border: none;
-        padding: 0.8rem 1.2rem;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: all 0.3s ease-in-out;
-        font-size: 1rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        }
-
-        .votar:hover {
-        background-color: var(--secondary-color);
-        }
-
-        .votar:disabled {
-        background-color: var(--dark-color);
-        cursor: not-allowed;
-        }
-
-        /* Botones de administración */
-        button {
-        background-color: var(--primary-color);
-        color: var(--light-color);
-        border: none;
-        padding: 0.8rem 1.2rem;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: all 0.3s ease-in-out;
-        font-size: 1rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin: 1rem;
-        }
-
-        button:hover {
-        background-color: var(--secondary-color);
-        }
-
-        /* Recuento de votos */
-        #recuentoVotos {
-        margin-top: 2rem;
-        background-color: var(--light-color);
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 1.5rem;
-        }
-
-        .grupoVoto {
-        background-color: var(--primary-color);
-        color: var(--light-color);
-        padding: 0.8rem;
-        border-radius: 5px;
-        margin-bottom: 0.5rem;
-        }
-
-        /* Resultado de votación centrado */
-        #resultadoVotacion {
-        margin: 2rem auto; /* Margen automático para centrar horizontalmente */
-        max-width: 500px; /* Ajusta el ancho máximo según tus necesidades */
-        background-color: var(--light-color);
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 1.5rem;
-        text-align: center;
-        animation: fadeIn 1s ease-in-out;
-        }
-
-        /* Animaciones */
-        @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-        }
-
-        @keyframes slideIn {
-        from {
-            transform: translateY(-20px);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        }
-
-        .bienvenida, .grupo, #recuentoVotos {
-        animation: fadeIn 1s ease-in-out;
-        }
-
-        /* Distribución de grupos */
-        #grupos-container {
-        display: flex;
-        justify-content: center;
-        }
-
-        .grupo {
-        background-color: var(--light-color);
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 1.5rem;
-        text-align: center;
-        transition: all 0.3s ease-in-out;
+    .grupo h2 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        z-index: 1;
         position: relative;
-        overflow: hidden;
-        }
+        flex-grow: 1;
+    }
 
-        #grupos {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(250px, 1fr));
-        gap: 2rem;
-        max-width: 100%;
-        }
+    .votar {
+        margin-top: auto;
+        cursor: pointer;
+        color: #fff;
+        background-color: #2c3e50;
+        border: none;
+        border-radius: 5px;
+        padding: 12px 24px;
+        font-size: 18px;
+        transition: background-color 0.3s ease;
+        width: 100%;
+        box-sizing: border-box;
+        z-index: 1;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    }
 
-        /* Botones de votar deshabilitados */
+    .votar:hover {
+        background-color: #1a252f;
+    }
+
+    button {
+        margin: 10px;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 5px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        outline: none;
+        width: auto;
+        display: inline-block;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    #abrirVotacion, #cerrarVotacion, #reiniciarVotaciones {
+        background-color: #2c3e50;
+        color: #fff;
+    }
+
+    #abrirVotacion:hover, #cerrarVotacion:hover, #reiniciarVotaciones:hover {
+        background-color: #1a252f;
+    }
+
+    #resultadoVotacion, #recuentoVotos {
+        margin-top: 40px;
+        text-align: center;
+        font-size: 20px;
+        padding: 20px;
+        background-color: #fff;
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+        .votar:hover {
+            background-color: #1a252f;
+        }
         .votar:disabled {
-        background-color: #ccc; /* Color gris claro */
-        color: #666; /* Color gris oscuro */
-        cursor: not-allowed;
+            background-color: #ccc;
+            cursor: not-allowed;
         }
-
-        .grupo31-container {
-            display: flex;
-            justify-content: center;
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            outline: none;
+            width: auto;
+            display: inline-block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        .grupo31 {
-            background-color: var(--light-color);
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
+        #abrirVotacion, #cerrarVotacion, #reiniciarVotaciones {
+            background-color: #2c3e50;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        #abrirVotacion:hover, #cerrarVotacion:hover, #reiniciarVotaciones:hover {
+            background-color: #1a252f;
+        }
+        #resultadoVotacion, #recuentoVotos {
+            margin-top: 20px;
             text-align: center;
-            transition: all 0.3s ease-in-out;
-            position: relative;
-            overflow: hidden;
+            font-size: 18px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none;
         }
-        
-
-        /* Responsive */
-        @media (max-width: 768px) {
-        #grupos {
-            grid-template-columns: repeat(1, 1fr);
+        #recuentoVotosContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
         }
+        .grupoVoto {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        /* Contenedor con scroll para los grupos */
+        .grupoVoto p {
+            margin: 0;
+            font-size: 16px;
+            color: #555;
+        }
         #grupos-container {
-            margin-top: 2rem;
-            max-height: 70vh; /* Altura máxima con scroll */
-            overflow-y: auto; /* Añade scroll vertical si el contenido excede la altura */
-            display: flex; /* Cambiamos de grid a flex para que los grupos se distribuyan verticalmente */
-            flex-wrap: wrap; /* Para que los grupos puedan envolverse en una nueva línea si no hay suficiente espacio */
-            justify-content: center; /* Centrar los grupos horizontalmente */
-            padding-right: 1rem; /* Agrega espacio para evitar que el scroll se superponga al contenido */
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 10px;
         }
-
-        /* Grupos */
         .grupo {
-            background-color: var(--light-color);
+            padding: 20px;
+            border: 1px solid #ddd;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
+            width: calc(33.333% - 40px);
             text-align: center;
-            transition: all 0.3s ease-in-out;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             position: relative;
             overflow: hidden;
-            margin: 1rem; /* Añadimos margen entre los grupos */
-            flex: 1 0 300px; /* Establecemos un tamaño flexible para los grupos */
-            max-width: 300px; /* Limitamos el ancho máximo de los grupos para evitar que se estiren demasiado */
+            display: flex; /* Agregamos esta línea */
+            flex-direction: column; /* Agregamos esta línea */
+            height: 200px; /* Ajusta la altura según tus necesidades */
         }
-
-        /* Grupos */
-        .grupo {
-            display: flex; /* Usamos flexbox para alinear verticalmente */
-            flex-direction: column; /* Alineamos los elementos en columnas */
-            justify-content: center; /* Centramos verticalmente los elementos */
-            align-items: center; /* Centramos horizontalmente los elementos */
-            background-color: var(--light-color);
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease-in-out;
-            position: relative;
-            overflow: hidden;
-            margin: 1rem;
-            flex: 1 0 300px;
-            max-width: 300px;
+        #grupos {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: none;
+            margin: 0;
         }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        /* Estilos para pantallas pequeñas */
+        @media only screen and (max-width: 600px) {
+            #grupos-container {
+                height: auto; /* Eliminar altura fija */
+                max-height: 400px; /* Establecer una altura máxima para evitar que se desborde la pantalla */
+            }
 
-        /* Nombre del grupo */
-        .grupo h2 {
-            margin-bottom: 0.5rem; /* Reducimos el margen inferior del nombre */
+            .grupo {
+                width: calc(100% - 20px); /* Ajustar el ancho para ocupar todo el ancho de la pantalla */
+                margin-bottom: 20px; /* Agregar espacio entre grupos */
+            }
         }
     </style>
 </head>
 <body>
     <h1 id="titulo">Votaciones: Proceso Administrativo</h1>
-    <div class="bienvenida"><p>Bienvenid@ a las votaciones {{ session.get('nombre', 'Invitado') }}!</p></div>
+    <div class="bienvenida"><p>Bienvenid@ a las votaciones Licenciada Dania!</p></div>
     <div id="grupos-container">
         <div id="grupos">
             <div class="grupo">
@@ -401,25 +362,23 @@
                 <button class="votar" data-grupo="30" disabled>Votar</button>
             </div>
             <div class="grupo">
-                    <h2>No.31 Patrick Alexander Salguero Solares</h2>
-                    <button class="votar" data-grupo="31" disabled>Votar</button>
-            </div>        
+                <h2>No.31 Patrick Alexander Salguero Solares</h2>
+                <button class="votar" data-grupo="31" disabled>Votar</button>
+            </div>            
         </div>
     </div>
     <div id="resultadoVotacion" style="display: none;"></div>
-    <span id="es-admin-valor" style="display: none;">{{ session.get('es_admin', False) | tojson }}</span>
-    <span id="correo-usuario" style="display: none;">{{ session.get('correo', '') }}</span>
-    {% if session.get('es_admin', False) %}
+    <span id="es-admin-valor" style="display: none;">true</span>
+    <span id="correo-usuario" style="display: none;">dcamerosv@miumg.edu.gt</span>
+    
         <button id="abrirVotacion">Abrir Votación</button>
         <button id="cerrarVotacion" style="display: none;">Cerrar Votación</button>
         <button id="reiniciarVotaciones" style="display: none;">Reiniciar Votaciones</button>
-        <div id="recuentoVotos" style="display: none; max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
-            <h3 style="margin-bottom: 10px;">Recuento de Votos:</h3>
-            <div id="recuentoVotosContainer">
-                <!-- Aquí se añadirán los cuadros de recuento de votos dinámicamente -->
-            </div>
+        <div id="recuentoVotos" style="display: none;">
+            <h3>Recuento de Votos:</h3>
+            <div id="recuentoVotosContainer"></div>
         </div>
-    {% endif %}
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -521,24 +480,14 @@
 
             // Actualizar y mostrar el recuento de votos
             function actualizarRecuentoVotos(recuentoVotos) {
-                const recuentoVotosContainer = document.getElementById('recuentoVotosContainer');
-                if (recuentoVotosContainer && recuentoVotos && typeof recuentoVotos === 'object') {
-                    recuentoVotosContainer.innerHTML = ''; // Limpiar el contenido anterior
-
-                    // Iterar sobre el objeto de recuento de votos y construir los cuadros de recuento de votos
+                const recuentoVotosDiv = document.getElementById('recuentoVotos');
+                if (recuentoVotosDiv && recuentoVotos && typeof recuentoVotos === 'object') {
+                    let recuentoVotosHTML = '<h3>Recuento de Votos:</h3>';
                     for (const [grupo, votos] of Object.entries(recuentoVotos)) {
-                        const recuentoVotosHTML = `
-                            <div style="margin-bottom: 10px;">
-                                <p>No.${grupo}: ${votos} votos</p>
-                            </div>
-                        `;
-                        recuentoVotosContainer.insertAdjacentHTML('beforeend', recuentoVotosHTML);
+                        recuentoVotosHTML += `<p>Participantes ${grupo}: ${votos} votos</p>`;
                     }
-
-                    const recuentoVotosDiv = document.getElementById('recuentoVotos');
-                    if (recuentoVotosDiv) {
-                        recuentoVotosDiv.style.display = 'block'; // Mostrar el recuento de votos
-                    }
+                    recuentoVotosDiv.innerHTML = recuentoVotosHTML;
+                    recuentoVotosDiv.style.display = 'block'; // Mostrar el recuento de votos
                 } else {
                     console.error('El recuento de votos no está definido correctamente:', recuentoVotos);
                 }
